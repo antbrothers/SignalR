@@ -1,0 +1,60 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Index</title>
+    <script src="~/Scripts/jquery-1.8.2.js"></script>
+    <script src="~/Scripts/jquery.signalR-2.0.3.js"></script>
+    <script src="~/signalr/hubs" type="text/javascript"></script>
+    <script>
+        $(function () {
+            var myClientName = $('#Placeholder').val();
+            // Proxy created on the fly
+            var chat = $.connection.char;
+            // Declare a function on the chat hub so the server can invoke it
+            chat.client.addSomeMessage = function (clientName, message) {
+                writeEvent('<b>' + clientName + '</b> 对大家说: ' + message, 'event-message');
+            };
+            $("#broadcast").click(function () {
+                // Call the chat method on the server
+                chat.server.send(myClientName, $('#msg').val())
+                                    .done(function () {
+                                        console.log('Sent message success!'+';myClientName:'+myClientName+';val:'+$("#msg").val());
+                                    })
+                                    .fail(function (e) {
+                                        console.warn(e);
+                                    });
+            });
+            // Start the connection
+            $.connection.hub.start();
+            //A function to write events to the page
+            function writeEvent(eventLog, logClass) {
+                var now = new Date();
+                var nowStr = now.getHours() + ':' + now.getMinutes() + ':' + now.getSeconds();
+                $('#messages').prepend('<li class="' + logClass + '"><b>' + nowStr + '</b> ' + eventLog + '.</li>');
+            }
+        });
+    </script>
+</head>
+<body>
+    <div>
+        <p>
+            <input type="text" id="Placeholder" value="@ViewBag.ClientName" hidden="true"/>
+            <input type="text" id="msg" />
+            <input type="button" id="broadcast" value="广播" />
+
+            <br />
+            <br />
+            <h3>消息记录： (你是：<span id="MyClientName">@ViewBag.ClientName</span>):
+            </h3>
+            <ul id="messages">
+            </ul>
+        </p>
+    </div>
+</body>
+</html>
